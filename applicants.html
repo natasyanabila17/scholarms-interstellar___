@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Applicants | Student Scholarship Management System</title>
+  <meta name="description" content="Search, filter and review student scholarship applications.">
+  <meta name="author" content="Natasya Nabila">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2305060A'/%3E%3Cellipse cx='16' cy='16' rx='14' ry='3' fill='none' stroke='%23E8A15B' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23000' stroke='%23E8A15B' stroke-width='1.3'/%3E%3Cpath d='M2 16a14 3 0 0 0 28 0' fill='none' stroke='%23E8A15B' stroke-width='1.8'/%3E%3C/svg%3E">
+  <script src="js/theme.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Jost:ital,wght@0,300;0,400;0,500;0,600;1,300&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <div id="app-nav"></div>
+
+  <main id="main" class="container py-4" tabindex="-1">
+    <header class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div>
+        <p class="eyebrow">Crew manifest</p>
+        <h1 class="h3 mb-1">Applicants</h1>
+        <p class="text-body-secondary mb-0">Review and decide on scholarship applications.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary" id="exportBtn" type="button"><i class="bi bi-download me-1" aria-hidden="true"></i>Export CSV</button>
+        <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#addModal"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>New Application</button>
+      </div>
+    </header>
+
+    <div id="roleNote" class="alert alert-info d-none" role="note"></div>
+
+    <!-- Toolbar -->
+    <section class="card shadow-sm mb-3" aria-label="Filters">
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-5">
+            <label for="searchInput" class="form-label small mb-1">Search <span class="text-body-secondary">(press / to focus)</span></label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+              <input type="search" id="searchInput" class="form-control" placeholder="Name or matric number">
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <label for="statusFilter" class="form-label small mb-1">Status</label>
+            <select id="statusFilter" class="form-select">
+              <option value="">All</option><option>Pending</option><option>Approved</option><option>Rejected</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-2">
+            <label for="facultyFilter" class="form-label small mb-1">Faculty</label>
+            <select id="facultyFilter" class="form-select"><option value="">All</option></select>
+          </div>
+          <div class="col-12 col-md-2">
+            <button type="button" id="clearBtn" class="btn btn-outline-secondary w-100"><i class="bi bi-x-circle me-1" aria-hidden="true"></i>Clear</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="errorBox" class="alert alert-danger d-none" role="alert"></div>
+    <p id="resultCount" class="small text-body-secondary mb-2" aria-live="polite"></p>
+
+    <!-- Table -->
+    <div class="card shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="appTable">
+          <caption class="visually-hidden">Scholarship applications</caption>
+          <thead class="thead-soft">
+            <tr>
+              <th scope="col" aria-sort="none"><button class="sort-btn" data-key="name" type="button">Student <i class="bi bi-arrow-down-up" aria-hidden="true"></i></button></th>
+              <th scope="col" class="d-none d-lg-table-cell">Matric</th>
+              <th scope="col" class="d-none d-md-table-cell" aria-sort="none"><button class="sort-btn" data-key="faculty" type="button">Faculty <i class="bi bi-arrow-down-up" aria-hidden="true"></i></button></th>
+              <th scope="col" aria-sort="none"><button class="sort-btn" data-key="cgpa" type="button">CGPA <i class="bi bi-arrow-down-up" aria-hidden="true"></i></button></th>
+              <th scope="col" class="d-none d-md-table-cell">Scholarship</th>
+              <th scope="col" aria-sort="none"><button class="sort-btn" data-key="status" type="button">Status <i class="bi bi-arrow-down-up" aria-hidden="true"></i></button></th>
+              <th scope="col" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="appBody"></tbody>
+        </table>
+      </div>
+      <div class="card-footer bg-transparent d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <span class="small text-body-secondary" id="pageInfo"></span>
+        <nav aria-label="Applicants pagination"><ul class="pagination pagination-sm mb-0" id="pager"></ul></nav>
+      </div>
+    </div>
+  </main>
+
+  <!-- Detail panel -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="detailCanvas" aria-labelledby="detailTitle">
+    <div class="offcanvas-header border-bottom">
+      <h2 class="offcanvas-title h5" id="detailTitle">Application</h2>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body" id="detailBody"></div>
+    <div class="offcanvas-footer border-top p-3 d-flex gap-2 d-none" id="detailFoot"></div>
+  </div>
+
+  <!-- Add modal -->
+  <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" id="addForm" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title h5" id="addModalLabel">New Application</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="fName" class="form-label">Full name</label>
+            <input type="text" id="fName" class="form-control" required minlength="3">
+            <div class="invalid-feedback">Enter the student's full name.</div>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-sm-7">
+              <label for="fMatric" class="form-label">Matric number</label>
+              <input type="text" id="fMatric" class="form-control" required pattern="\d{10}" inputmode="numeric" maxlength="10">
+              <div class="invalid-feedback">Must be exactly 10 digits.</div>
+            </div>
+            <div class="col-sm-5">
+              <label for="fCgpa" class="form-label">CGPA</label>
+              <input type="number" id="fCgpa" class="form-control" required min="0" max="4" step="0.01">
+              <div class="invalid-feedback">Between 0.00 and 4.00.</div>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="fFaculty" class="form-label">Faculty</label>
+            <select id="fFaculty" class="form-select" required>
+              <option value="">Select…</option>
+              <option>FSKM</option><option>FKE</option><option>FKA</option><option>FPP</option><option>FSG</option><option>FPN</option>
+            </select>
+            <div class="invalid-feedback">Select a faculty.</div>
+          </div>
+          <div class="mb-1">
+            <label for="fScholarship" class="form-label">Scholarship</label>
+            <select id="fScholarship" class="form-select" required><option value="">Select…</option></select>
+            <div class="invalid-feedback">Select a scholarship.</div>
+            <div class="form-text" id="fHint" aria-live="polite"></div>
+          </div>
+          <div id="formError" class="alert alert-danger mt-3 mb-0 d-none" role="alert"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="app-footer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/applicants.js"></script>
+</body>
+</html>
